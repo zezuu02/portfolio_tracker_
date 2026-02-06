@@ -12,4 +12,4 @@ A Python-based stock portfolio tracker that:
 - Automatic FX conversion to USD
 - Clean CLI output using `tabulate`
 
-## Example Output
+#-This is just my mini project, it's nothing fancy.
