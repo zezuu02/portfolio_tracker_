@@ -91,9 +91,6 @@ def display_portfolio_summary(portfolio):
        
   
 if __name__ == "__main__":
-    #ticker=input("Enter the ticker name to check its price")
-    #exchange=input("Entetr the exchange as well")
-    #print(get_price_info("SHOP","TSE"))
     shop=Stock("SHOP","TSE")
     msft=Stock("MSFT","NASDAQ")
     googl=Stock("GOOGL","NASDAQ")
@@ -102,7 +99,6 @@ if __name__ == "__main__":
     
    
     display_portfolio_summary(portfolio)
-#df=pd.DataFrame([get_price_info("AMZN","NASDAQ")])
-#print(df) 
-#df.to_csv("price.cv")    
+  
+
     
