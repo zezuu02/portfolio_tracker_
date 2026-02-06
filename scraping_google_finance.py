@@ -1,0 +1,108 @@
+import requests as r 
+from bs4 import BeautifulSoup
+from dataclasses import dataclass
+from tabulate import tabulate 
+@dataclass
+class Stock:
+    ticker:str
+    exchange:str
+    price:float=0
+    currency:str="USD"
+    usd_price:float=0
+    
+    def __post_init__(self):
+        price_info=get_price_info(self.ticker,self.exchange)
+        if price_info["ticker"]==self.ticker:
+           self.currency=price_info["currency"]
+           self.price=price_info["price"]
+           self.usd_price=price_info["usd_price"]
+        
+     
+@dataclass
+class Position:
+    stock:Stock
+    quan:int
+@dataclass
+class Portfolio:
+    positions:list[Position] 
+    
+    def get_total_values(self):
+        total_value=0
+        for position in self.positions:
+            total_value+=position.quan*position.stock.usd_price   
+        return total_value
+def get_price_info(ticker,exchange):
+    url=f"https://www.google.com/finance/quote/{ticker}:{exchange}"
+    resp=r.get(url)
+    soup=BeautifulSoup(resp.content,"html.parser")
+    price_div=soup.find("div",attrs={"data-last-price":True})
+    price=float(price_div["data-last-price"])
+    currency=price_div["data-currency-code"]
+    usd_price=price
+    if currency!="USD":
+        fx=get_fx_to(currency)
+        usd_price=round(price * fx, 2)
+    return {
+        "ticker":ticker,
+        "exchange":exchange,
+        "price":price,
+        "currency":currency,
+        "usd_price":usd_price
+        
+    }
+
+    
+    
+ 
+def get_fx_to(currency):
+    fx_url=f"https://www.google.com/finance/quote/{currency}-USD"
+    resp=r.get(fx_url)
+    soup=BeautifulSoup(resp.content,"html.parser")
+    fx_rate=soup.find("div",attrs={"data-last-price":True})
+    fx=float(fx_rate["data-last-price"])
+    return fx
+
+def display_portfolio_summary(portfolio):
+    if not isinstance(portfolio,Portfolio):
+        raise TypeError("Please provide an instance of the Protfolio ttype")
+    
+    portfolio_value=portfolio.get_total_values()
+    position_data=[]
+    for position in sorted(portfolio.positions,key=lambda x:x.quan * x.stock.usd_price,
+                           reverse=True):
+        position_data.append([
+            position.stock.ticker,
+            position.stock.exchange,
+            position.quan,
+            position.stock.usd_price,
+            position.quan * position.stock.usd_price  
+        ])
+    print(tabulate(position_data, headers=["ticker","exchange","quantity","price","Market value", "% Allocation"],
+                   tablefmt="psql",
+                   floatfmt=".2f"
+                   
+                   
+                   ))    
+    print(f"Total protfolio values:${portfolio_value:,.2f}")
+     
+                                           
+    
+    
+       
+  
+if __name__ == "__main__":
+    #ticker=input("Enter the ticker name to check its price")
+    #exchange=input("Entetr the exchange as well")
+    #print(get_price_info("SHOP","TSE"))
+    shop=Stock("SHOP","TSE")
+    msft=Stock("MSFT","NASDAQ")
+    googl=Stock("GOOGL","NASDAQ")
+    
+    portfolio=Portfolio([Position(shop,10),Position(msft,14),Position(googl, 30)])
+    
+   
+    display_portfolio_summary(portfolio)
+#df=pd.DataFrame([get_price_info("AMZN","NASDAQ")])
+#print(df) 
+#df.to_csv("price.cv")    
+    
